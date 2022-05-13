@@ -1,0 +1,116 @@
+---
+title: "Lab 8"
+author: "Nur Izzati Binti Shalahudin"
+date: '2022-05-13'
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r, echo=FALSE,message = FALSE}
+library(mlbench)
+library(caret)
+library(Hmisc)
+library(dplyr)
+```
+
+### Get dataset & clean it
+```{r,warning=FALSE}
+data("BreastCancer")
+breast <- BreastCancer
+
+#remove 1st column (ID column, not needed)
+breast <- select(breast, -1)
+
+#impute NA values in bare.nuclei into mean value
+breast$Bare.nuclei<-as.numeric(breast$Bare.nuclei)
+breast$Bare.nuclei[is.na(breast$Bare.nuclei)] <-round(mean(breast$Bare.nuclei, na.rm = T),digits = 0)
+
+#change 'Class' into factors
+breast$Class<-as.character(breast$Class)
+breast$Class<-as.factor(breast$Class)
+
+# set seed
+set.seed(7)
+
+# traincontrol
+trainControl <- trainControl(method="repeatedcv", number=10, repeats=3)
+metric <- "Accuracy"
+```
+
+
+# **Linear Algorithm**
+
+### Linear Regression (LR)
+```{r,warning=FALSE}
+fit.glm= train(Class~.,
+                data=breast, 
+                method="glm",
+                metric=metric,
+                trControl=trainControl)
+```
+
+### Linear Discriminate Analysis (LDA)
+```{r}
+lda.fit = train(Class ~ ., data=breast, method="lda",metric=metric,
+                trControl=trainControl)
+```
+
+### Regularized Logistic Regression (GLMNET)
+```{r}
+glmnet.fit<-train(Class ~ ., data=breast, method="glmnet",metric=metric,
+           trControl=trainControl)
+```
+
+
+
+
+
+
+
+
+
+# **Non-Linear Algorithm**
+
+### k-Nearest Neighbors (kNN)
+```{r}
+knn.fit<-train(Class ~ ., data=breast, method="knn",metric=metric,
+                  trControl=trainControl)
+
+```
+
+### Classification and Regression Trees (CART)
+```{r}
+cart.fit<-train(Class ~ ., data=breast, method="rpart",metric=metric,
+               trControl=trainControl)
+
+```
+
+### Naive Bayes (NB)
+```{r}
+nb.fit<-train(Class ~ ., data=breast, method="naive_bayes",metric=metric,
+                trControl=trainControl)
+
+```
+
+# **Result**
+```{r}
+print(fit.glm)
+print(lda.fit)
+print(glmnet.fit)
+print(knn.fit)
+print(cart.fit)
+print(nb.fit)
+```
+
+
+
+
+
+
+
+
+# **Ways to improve performance of model**
+### 1.Add more data for malignant cases (bcs benign cases have 2x more data)
+### 2.Ensure the data collected are complete (no NA/NAN)
+
